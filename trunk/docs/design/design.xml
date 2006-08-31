@@ -1,0 +1,378 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN" "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd" [
+]>
+
+<book>
+<bookinfo>
+<title>Simple Interactive Connectivity </title>
+<title>    Establishment (SICE)</title>
+<author>
+<firstname>Arno</firstname><surname>Karatmaa</surname>
+<affiliation>
+<address><email>arno.karatmaa@movial.fi</email></address>
+</affiliation>
+</author>
+<author>
+<firstname>Rami</firstname><surname>Erlin</surname>
+<affiliation>
+<address><email>rami.erlin@movial.fi</email></address>
+</affiliation>
+</author>
+<copyright>
+<year>2006</year>
+<holder>Movial Corporation Oy</holder>
+</copyright>
+<legalnotice>
+<para>
+Revision history
+
+<informaltable>
+<tgroup cols='4' align='left' colsep='1' rowsep='1'>
+<thead>
+<row>
+  <entry>Version</entry>
+  <entry>Date</entry>
+  <entry>Author</entry>
+  <entry>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+  <entry>0.2</entry>
+  <entry>25.8.2006</entry>
+  <entry>Rami Erlin</entry>
+  <entry>Improving content of testing overview</entry>
+</row>
+
+<row>
+  <entry>0.1</entry>
+  <entry>21.8.2006</entry>
+  <entry>Arno Karatmaa</entry>
+  <entry>Initial version</entry>
+</row>
+</tbody>
+</tgroup>
+</informaltable>
+
+</para>
+</legalnotice>
+</bookinfo>
+
+<chapter>
+<title>Introduction</title> 
+<para>
+This document gives technical overview of the ICE (Interactive Connectivity Establishment) project. Project is LGPL licensed and written in C language .The library is based on IETF ICE draft.
+</para>
+
+<para>
+Project aims to produce a portable ICE library. In current phase of the project there are dependencies on GLib, mainly in the use of the data structures. GLib dependencies are planned to be removed later, providing better compatibility for example with Symbian. In addition, extra layer of abstraction is used to wrap platform specific code, such as handling of sockets.
+</para>
+
+<para>
+Code development of the project is in early state.
+</para>
+
+</chapter>
+<chapter>
+
+<title>Implementation architecture</title>
+<para>
+SICE library architecture is described in the chart below. Chart describes major components of the library and their relations.
+</para>
+
+<para>
+<inlinegraphic fileref="ice_impl_architecture_2.png" format="PNG" scale="65" />
+</para>
+
+<para>
+Client and the library are communicating through SICE interface. Parallel sessions are supported. In case of parallel session library is instantied once for each session. For are supported example, there can be one session for audio, one session for video, and one session for text messaging. Each session is running in a separate thread.
+</para>
+
+<para>When agent is sending or receiving media, it is being tunneled through SICE library. Local sockets are used for tunneling. From the point of view of the client, sending media through SICE library is equivalent of sending media directly to the counterpart. Tunneling is managed through Signal Handler component.
+</para>
+
+<sect1>
+<title>Signal Handler</title>
+<para>
+Signal Handler is responsible for internal execution flow ofSICE library, arranging execution order of tasks, timing of tasks and managing events. By default library thread is sleeping and waiting for events to trigger activity. Triggering events include incoming and outgoing data in sockets and timer trigger. After handling an event thread goes back to sleeping state.
+</para>
+</sect1>
+
+<sect1>
+<title>Event Fifo</title>
+<para>
+Event Fifo contains "pipeline" of events. All events go through Event Fifo. Event Fifo determines the execution order. All events are executed in the order Event Fifo receives them. Executable task is a subtype of event.
+</para>
+</sect1>
+
+<sect1>
+<title>Main State Machine</title>
+<para>
+Main State Machine picks from the Event Fifo next executable event. Based on the event type, Main State Machine executes event or transmits it for another component. In case of STUN check event, Main State Machine parses the Transport Address Pair out of the event, and passes it to right Transport Address State Machine for execution. Main State Machine stores the state of the library, state of operating candidate and operating mode of the library. Operating mode of the library is either an offerer or an answerer.
+</para>
+</sect1>
+
+<sect1>
+<title>Transport Address Pair State Machine</title>
+<para>
+Transport Address Pair State Machine implements operation of equivalent state machine inSICE specification. Transport Address Pair State machine sends, receives and interpretes STUN checks.
+</para>
+</sect1>
+
+<sect1>
+<title>Timer</title>
+<para>
+Timer component manages scheduled execution of tasks. Tasks are stored in Timelist as time ordered sequence from first to last, where first task is the one to be executed next. Task which is scheduled to be next in execution, passes its execution time for Signal Handler to be used in timer trigger to wake up the thread at the right time.
+</para>
+</sect1>
+
+<sect1>
+<title>Keep Alive</title>
+<para>
+Keep Alive component generates in cooperation with Timer component next keep alive message for Timerlist, and sends current keep alive message through Signal Handler.
+</para>
+</sect1>
+
+<sect1>
+<title>Callback</title>
+<para>
+Callback component makes all callback function calls to client. Calls include information about session, call type and userdata. For example, as userdata callbacks deliver native candidates and new candidates formed as a consequence of STUN checks.
+</para>
+</sect1>
+
+</chapter>
+<chapter>
+
+<title>Header files</title>
+<para>
+Data structures are located in following header files. It is noted, which headers are used with public API (public), and which are for internal use of the library (internal). Public headers are also used internally.
+</para>
+<itemizedlist>
+<listitem>
+<para>
+ice_event_fifo.h (internal)
+</para>
+</listitem>
+<listitem>
+<para>
+ice_interface.h (public)
+</para>
+</listitem>
+<listitem>
+<para>
+ice_stun.h (internal)
+</para>
+</listitem>
+<listitem>
+<para>
+ice_types.h (public)
+</para>
+</listitem>
+</itemizedlist>
+
+<para>
+Data structures are in most part self explanatory, closely related to IETF ICE draft terminology. Most relevant datastructures are:
+</para>
+<itemizedlist>
+<listitem>
+<para>
+ice_candidate
+</para>
+</listitem>
+<listitem>
+<para>
+ice_component
+</para>
+</listitem>
+<listitem>
+<para>
+ice_candidate_pair
+</para>
+</listitem>
+<listitem>
+<para>
+ice_transport_address_pair
+</para>
+</listitem>
+</itemizedlist>
+
+<para>
+These data structures are stored in following lists:
+</para>
+<itemizedlist>
+<listitem>
+<para>
+ice_native_candidates
+</para>
+</listitem>
+<listitem>
+<para>
+ice_remote_candidates
+</para>
+</listitem>
+<listitem>
+<para>
+ice_candidate_pairs
+</para>
+</listitem>
+<listitem>
+<para>
+ice_transport_address_pairs
+</para>
+</listitem>
+</itemizedlist>
+<para>
+More detailed description for the selected data structures will be added here later.
+</para>
+
+<para>
+Public API is located in separate Doxygen generated documentation.
+</para>
+
+</chapter>
+<chapter>
+
+<title>Use of SICE library</title>
+<para>
+Basic example of use of SICE library is presented in the sequence diagram below.
+</para>
+<para>
+<inlinegraphic fileref="ice_sequence_diagram_9.png" format="PNG" scale="75"/>
+</para>
+
+<para>
+Notes of the sequence diagram.
+</para>
+
+<para>
+In step 4 and in all subsequent signaling, signaling between agent A and agent B is transmitted through signaling server. In step 10 STUN checks are executed in request/response manner between SICElib A and SICElib B, STUN chekcs are executed in equal manner in step 14. In step 19 library informs agent of being capable for send and receive. In step 20, agent sets communication state to send and receive on. Similar procedure takes place in steps 23 and 24. In step 25 and 26, agent A and agent B start sending and receiving media.
+</para>
+
+<para>
+The sequence diagram describes signaling between agents, which both use the same SICE library, which isn't mandatory, but used here to clarify API usage.
+</para>
+
+</chapter>
+<chapter>
+<title>
+Testing overview
+</title>
+
+<para>
+Testing will be done with a test client, which uses SICE library for
+establishing a voice call. Testing will include several different network
+topologies with different NAT, STUN and TURN server setups.
+</para>
+
+<para>
+Following diagram describes relationships of components for SICE library 
+testing. The GStreamer Media Engine is used for the actual media 
+streaming. Loudmouth library is used to handle the XMPP signaling. JEP-0176
+is not implemented so testing requires the same client at both ends.
+</para>
+
+<para>
+<inlinegraphic fileref="test_design.png" format="PNG" scale="70"/>
+</para>
+
+<para>
+Following table represents test case scenarios.
+</para>
+
+<informaltable>
+<tgroup cols='5' align='left' colsep='1' rowsep='1'>
+<thead>
+<row>
+  <entry>Connection type</entry>
+  <entry>Local NAT</entry>
+  <entry>Remote NAT</entry>
+  <entry>STUN server</entry>
+  <entry>TURN server</entry>
+</row>
+</thead>
+
+<tbody>
+<row>
+  <entry>direct</entry>
+  <entry>n/a</entry>
+  <entry>n/a</entry>
+  <entry>n/a</entry>
+  <entry>n/a</entry>
+ </row>
+<row>
+  <entry>direct</entry>
+  <entry>n/a</entry>
+  <entry>n/a</entry>
+  <entry>in use</entry>
+  <entry>n/a</entry>
+</row>
+<row>
+  <entry>direct</entry>
+  <entry>n/a</entry>
+  <entry>n/a</entry>
+  <entry>in use</entry>
+  <entry>in use</entry>
+</row>
+<row>
+  <entry>direct</entry>
+  <entry>in use</entry>
+  <entry>n/a</entry>
+  <entry>in use</entry>
+  <entry>in use</entry>
+</row>
+<row>
+  <entry>relayed</entry>
+  <entry>in use</entry>
+  <entry>in use</entry>
+  <entry>in use</entry>
+  <entry>in use</entry>
+</row>
+<row>
+  <entry>relayed</entry>
+  <entry>n/a</entry>
+  <entry>n/a</entry>
+  <entry>in use</entry>
+  <entry>in use</entry>
+</row>
+<row>
+  <entry>relayed</entry>
+  <entry>in use</entry>
+  <entry>n/a</entry>
+  <entry>in use</entry>
+  <entry>in use</entry>
+</row>
+
+</tbody>
+
+</tgroup>
+</informaltable>
+
+<para>
+Previous tests can be varied by generating message losses, message delays inside specification tolerance and message delays outside specification tolerance. Additionally remote client can be replaced by client which uses different SICE implementation and with client which doesn't use SICE.
+</para>
+
+</chapter>
+
+<bibliography>
+<title>References</title>
+
+<biblioentry id="ICE_001" xreflabel="1">
+<citetitle>
+<ulink url="http://www.jdrosen.net/papers/draft-ietf-mmusic-ice-09.txt">ICE draft</ulink>
+</citetitle>
+</biblioentry>
+
+<biblioentry id="ICE_002" xreflabel="2">
+<citetitle>
+<ulink url="http://en.wikipedia.org/wiki/Interactive_Connectivity_Establishment">ICE in Wikipedia</ulink>
+</citetitle>
+</biblioentry>
+
+<biblioentry id="ICE_003" xreflabel="3">
+<citetitle>
+<ulink url="http://www.newport-networks.com/whitepapers/nat-traversal1.html">NAT traversal</ulink>
+</citetitle>
+</biblioentry>
+
+</bibliography>
+</book>

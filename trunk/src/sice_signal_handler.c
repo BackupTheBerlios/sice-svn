@@ -1,0 +1,189 @@
+/* Copyright (C) 2006  Movial Oy
+ * authors:     rami.erlin@movial.fi
+ *              arno.karatmaa@movial.fi
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,MA 02111-1307 USA 16
+ */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
+#include "../include/sice_types.h"
+#include "sice_timer.h"
+#include "sice_signal_handler.h"
+#include "sice_main_state_machine.h"
+
+#define PORT 9000               /* port we're listening on */
+
+int 
+create_socket ( int                     port, 
+                struct sockaddr_in*     native_addr_pointer) {
+    int listener;
+    struct sockaddr_in native_addr;
+    native_addr = *native_addr_pointer;
+
+    /* struct sockaddr_in native_addr; */
+    int yes = 1;
+
+    if ((listener = socket (PF_INET, SOCK_DGRAM, 0)) == -1) {
+        perror ("socket");
+        exit (1);
+    }
+
+    /* lose the pesky "address already in use" error message */
+    if (setsockopt (listener, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof (int)) == -1) {
+        perror ("setsockopt");
+        exit (1);
+    }
+
+    native_addr.sin_family = AF_INET;
+    native_addr.sin_addr.s_addr = INADDR_ANY;
+    printf("INADDR_ANY: %d\n",  INADDR_ANY);
+    native_addr.sin_port = htons (port);
+    memset ((native_addr.sin_zero), '\0', 8);
+    if (bind (listener, (struct sockaddr *) &native_addr, sizeof (native_addr)) == -1) {
+        perror ("bind");
+        exit (1);
+    }
+
+    return listener;
+}
+
+/* Getting delay for the next time task if any, if not, returning NULL */
+struct timeval* 
+set_timed_task_list_delay(      GQueue*         timed_task_list,
+                                struct timeval* timer_delay ) {
+    GTimeVal current_time;
+    sice_timed_task* timed_task;
+
+    timed_task = sice_peek_next_timed_task(timed_task_list);
+    if (timed_task == NULL) {
+        timer_delay = NULL;
+    }
+    else {
+        g_get_current_time(&current_time);
+        sice_set_time_difference(       timed_task->execution_time, 
+                                        current_time, 
+                                        timer_delay);
+    }
+
+    return timer_delay;
+}
+
+void 
+run_signal_handler (    int             client_port_count, 
+                        int*            client_ports, 
+                        GQueue*         event_fifo, 
+                        GQueue*         timed_task_list) {
+    fd_set master;
+    fd_set read_fds;
+    struct sockaddr_in native_addr[10];
+
+    int fdmax = -1;
+    int listeners[10];
+    char buf[256];
+    int nbytes;
+    int i,j,new_connection,socket_interrupt,fromlen,retval;
+    int round = 1;
+
+    struct timeval timer_delay;
+    struct timeval* timer_delay_pointer;
+    sice_timed_task* timed_task;
+
+    struct sockaddr_in from;
+    struct sockaddr_in tmp_sockaddr_in;
+
+
+    FD_ZERO (&master);
+    FD_ZERO (&read_fds);
+
+    for ( j = 0; j < client_port_count ; j++ ) {
+        listeners[j] = create_socket(client_ports[j], &native_addr[j]);
+        FD_SET (listeners[j], &master);
+        if (listeners[j] > fdmax) {
+            fdmax = listeners[j];
+        }
+    }
+
+    for (;/* forerver */;) {
+        read_fds = master;  /* copy it */
+        timer_delay_pointer = set_timed_task_list_delay(timed_task_list, &timer_delay);
+
+        if (timer_delay_pointer != NULL) 
+            printf ("Select blocking --- starts, maximum blocking time %d sec %d msec \n", 
+                    (int) timer_delay.tv_sec, (int) timer_delay.tv_usec / 1000);
+        else
+            printf ("Select blocking --- starts, maximum blocking time indefinite \n");
+
+        if (select (fdmax + 1, &read_fds, NULL, NULL, timer_delay_pointer) == -1) {
+            perror ("select");
+            exit (1);
+        }
+        printf ("Select blocking --- ends, round %d \n", round);
+        round++;
+
+        /* run through the existing connections looking for data to read */
+        socket_interrupt = 0;
+        for ( i = 0 ; i <= fdmax; i++ ) {
+            if (FD_ISSET ( i, &read_fds ) ) {
+                socket_interrupt = 1;
+                new_connection = 0;
+                for ( j = 0; j < client_port_count; j++ ) {
+                    if (i == listeners[j]) { 
+                        /* If data is sent to these sockets, it's automaticalluy new connection */
+                        new_connection = 1; 
+                        /* If data is sent to existing connection,
+                           filedescriptor i is not among listeners[] */
+                    }
+                }
+                /* receiving data */
+                fromlen = sizeof(struct sockaddr_in);
+                nbytes = recvfrom(i, buf, sizeof (buf), 0, (struct sockaddr *) &from, &fromlen);
+                if (nbytes == -1) {
+                    printf("ERROR in RECEIVE!\n");
+                }
+
+                tmp_sockaddr_in = (struct sockaddr_in) from;
+                printf("RECEIVE PORT: %d\n", ntohs(tmp_sockaddr_in.sin_port));
+
+                buf[nbytes] = 0; /
+                /* Terminating string */
+                printf("Receiving something! (maybe): %s\n", buf);
+                /* sending data */
+                retval= sendto(i, buf, nbytes, 0,(struct sockaddr *) &from,fromlen);
+                if (retval == -1) {
+                    printf("ERROR in SEND!\n");
+                }
+            }
+        }
+        if (socket_interrupt == 1) {
+            printf("SOCKET TRIGGER\n");
+        }
+        else {
+            printf("TIMER TRIGGER\n");
+            timed_task = sice_get_next_timed_task(timed_task_list); /* TODO: free mem */
+            printf("Timed task: %s\n", (char*) timed_task->user_data);
+        }
+        sice_run_main_state_machine(event_fifo);
+    }
+}
+           
+/* _SICE_SIGNAL_HANDLER_C_ */

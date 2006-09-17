@@ -101,7 +101,7 @@ sice_run_transport_address_pair_state_machine(   GQueue*                        
 }
 
 
-static E_TAP_TYPE
+static E_TAP_STATE
 sice_tap_waiting (       GQueue*                         event_fifo,
                         sice_transport_address_pair*     t_addr_pair,
                         sice_stun_message*               stun_msg ) {
@@ -115,17 +115,17 @@ sice_tap_waiting (       GQueue*                         event_fifo,
     /* take current state */
     E_TAP_STATE current_state = t_addr_pair->state;    
 
-    if () {
+    if (0/*nothing yet- for compiler*/) {
 
         return RECV_VALID;
     }
 
-    else if () {
+    else if (1) {
 
         return SEND_VALID;
     }
     
-    else if () {
+    else if (2) {
     /* "selected" event cause */
     
         return TESTING;
@@ -137,7 +137,7 @@ sice_tap_waiting (       GQueue*                         event_fifo,
 }
 
 
-static E_TAP_TYPE
+static E_TAP_STATE
 sice_tap_testing (       GQueue*                         event_fifo,
                         sice_transport_address_pair*     t_addr_pair,
                         sice_stun_message*               stun_msg ) {
@@ -149,12 +149,12 @@ sice_tap_testing (       GQueue*                         event_fifo,
     /* take current state */
     E_TAP_STATE current_state = t_addr_pair->state;    
     
-    if () {
+    if (0) {
 
         return RECV_VALID;
     }
 
-    else if () {
+    else if (1) {
 
         return SEND_VALID;
     }
@@ -163,7 +163,7 @@ sice_tap_testing (       GQueue*                         event_fifo,
         return INVALID;
 }
 
-static E_TAP_TYPE
+static E_TAP_STATE
 sice_tap_recv_valid (    GQueue*                         event_fifo,
                         sice_transport_address_pair*     t_addr_pair,
                         sice_stun_message*               stun_msg ) {
@@ -172,7 +172,7 @@ sice_tap_recv_valid (    GQueue*                         event_fifo,
     /* take current state */
     E_TAP_STATE current_state = t_addr_pair->state;    
     
-    if () {
+    if (1) {
 
         return VALID;
     }
@@ -182,7 +182,7 @@ sice_tap_recv_valid (    GQueue*                         event_fifo,
 }
 
 
-static E_TAP_TYPE
+static E_TAP_STATE
 sice_tap_send_valid (    GQueue*                         event_fifo,
                         sice_transport_address_pair*     t_addr_pair,
                         sice_stun_message*               stun_msg ) {
@@ -190,7 +190,7 @@ sice_tap_send_valid (    GQueue*                         event_fifo,
     /* take current state */
     E_TAP_STATE current_state = t_addr_pair->state;    
     
-    if () {
+    if (1) {
 
         return VALID;
     }
@@ -200,7 +200,7 @@ sice_tap_send_valid (    GQueue*                         event_fifo,
 }
 
 
-static E_TAP_TYPE
+static E_TAP_STATE
 sice_tap_valid (         GQueue*                         event_fifo,
                         sice_transport_address_pair*     t_addr_pair,
                         sice_stun_message*               stun_msg ) {
@@ -208,7 +208,7 @@ sice_tap_valid (         GQueue*                         event_fifo,
     /* take current state */
     E_TAP_STATE current_state = t_addr_pair->state;    
     
-    if () {
+    if (1) {
 
         return INVALID;
     }
@@ -218,7 +218,7 @@ sice_tap_valid (         GQueue*                         event_fifo,
 }
 
 
-static E_TAP_TYPE
+static E_TAP_STATE
 sice_tap_invalid (       GQueue*                         event_fifo,
                         sice_transport_address_pair*     t_addr_pair,
                         sice_stun_message*               stun_msg ) {

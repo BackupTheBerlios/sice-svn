@@ -21,7 +21,7 @@
 #define _SICE_INTERFACE_H_
 
 #include <glib.h>
-#include "../include/sice/types.h"
+#include "../include/sice_types.h"
 
 #ifdef __cplusplus
 extern "C" {

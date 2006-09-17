@@ -1,6 +1,6 @@
 /* Copyright (C) 2006  Movial Oy
- * authors:     rami.erlin@movial.fi
- *              arno.karatmaa@movial.fi
+ * authors:     re@welho.com
+ *              arno.karatmaa@gmail.com
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public

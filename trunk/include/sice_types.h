@@ -1,7 +1,7 @@
 
 /* Copyright (C) 2006  Movial Oy
- * authors: 	rami.erlin@movial.fi
- *              arno.karatmaa@movial.fi			
+ * authors: 	re@welho.com
+ *              arno.karatmaa@gmail.com			
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -139,8 +139,8 @@ struct _sice_component {
 
 struct _sice_ext_server {
     
-    sice_stun*           stun;
-    sice_turn*           turn;
+    sice_stun*          stun;
+    sice_turn*          turn;
     addr4               address;
 
 };
@@ -162,18 +162,18 @@ struct _sice_turn {
 struct _sice_candidate_pair {
 
     E_CP_STATE          state;
-    sice_candidate*      native_candidate;
-    sice_candidate*      remote_candidate;
+    sice_candidate*     native_candidate;
+    sice_candidate*     remote_candidate;
 
 };
 
 struct _sice_transport_address_pair {
     
     E_TAP_STATE         state;
-    gchar*		transport_address_pair_id;
-    sice_candidate*      native_candidate; 
-    sice_candidate*      remote_candidate;
-    guint		component_id;
+    gchar*		        transport_address_pair_id;
+    sice_candidate*     native_candidate; 
+    sice_candidate*     remote_candidate;
+    guint		        component_id;
 
 };
 

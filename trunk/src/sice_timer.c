@@ -1,6 +1,6 @@
 /* Copyright (C) 2006  Movial Oy
- * authors:     rami.erlin@movial.fi
- *              arno.karatmaa@movial.fi
+ * authors:     re@welho.com
+ *              arno.karatmaa@gmail.com
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,26 +18,26 @@
  */
 
 #include <glib.h>
-#include <stdlib.h>     // sizeof
+#include <stdlib.h>     
 #include "sice_timer.h"
 #include <stdio.h>
 #include "sice_event_fifo.h"
  
 /*******   for random number generator ********/
-static GRand    *rand_val;
+static GRand            *rand_val;
 
 /* test variable 'candidate_pair_count'*/
-const static guint    candidate_pair_count = 1;
+const static guint      candidate_pair_count = 1;
 
 /***** static's ****************************************************/
 static void
-sice_set_timed_task (    GQueue*                 sice_timed_task_list,
-                        sice_timed_task*         timed_task );
+sice_set_timed_task (    GQueue*                sice_timed_task_list,
+                         sice_timed_task*       timed_task );
 
 static gint
-sice_cmp_timed_task      (  sice_timed_task*               A,
-                            sice_timed_task*               B,
-                            gpointer                user_data );
+sice_cmp_timed_task      (  sice_timed_task*    A,
+                            sice_timed_task*    B,
+                            gpointer            user_data );
 
 /*******************************************************************/
 
@@ -52,45 +52,37 @@ sice_initialize_timed_task_list() {
 /* Note: no negative time differences (== past) are tolerated, those are interpreted as zero (== now) for the 
  * purposes of select operation. */
 void 
-sice_set_time_difference (      GTimeVal                later_moment, 
-                                GTimeVal                earlier_moment, 
-                                struct timeval* time_difference ) {
+sice_set_time_difference (      GTimeVal            later_moment, 
+                                GTimeVal            earlier_moment, 
+                                struct timeval*     time_difference ) {
     long nsec;
     long usec_diff;
     long sec_diff;
 
     sec_diff = later_moment.tv_sec - earlier_moment.tv_sec;
     usec_diff = later_moment.tv_usec - earlier_moment.tv_usec;
-  // printf("\ntrivial diff sec %ld usec %ld\n", (long) sec_diff, (long) usec_diff);
 
     /* remove negative usecs */
-    if (usec_diff < 0) {
-        nsec = - usec_diff / 1000000 + 1;
+    if ( usec_diff < 0 ) {
+        nsec = -usec_diff / 1000000 + 1;
         sec_diff = sec_diff - nsec;
         usec_diff = usec_diff + 1000000 * nsec;
     }
 
     /* remove multiplicites of usecs */
-    if (usec_diff > 1000000) {
+    if ( usec_diff > 1000000 ) {
         nsec = usec_diff / 1000000;
         sec_diff = sec_diff + nsec;
         usec_diff = usec_diff - nsec * 1000000;
     }
-    printf("\nearlier sec %ld msec %ld\n", 
-    (long) earlier_moment.tv_sec, (long) earlier_moment.tv_usec / 1000);
-    printf("later sec %ld msec %ld\n",  (long) later_moment.tv_sec, 
-                                        (long) later_moment.tv_usec / 1000);
-    printf("diff sec %ld msec %ld\n", (long) sec_diff, (long) usec_diff / 1000);
-    /* set result, but NEGATIVE (== past) times are interpreted as zero (== now) */
-    if (sec_diff < 0 ) {
+    /* set result,but NEGATIVE (==past) times are interpreted as zero (==now) */
+    if ( sec_diff < 0 ) {
         (*time_difference).tv_sec = 0;
         (*time_difference).tv_usec = 0;
-    }
-    else {
+    } else {
         (*time_difference).tv_sec = sec_diff;
         (*time_difference).tv_usec = usec_diff;
     }
-
 }
 
 void
@@ -101,7 +93,6 @@ sice_add_timed_task (           GQueue*                 sice_timed_task_list,
                                 gpointer                user_data ) {
 
     if ( !sice_timed_task_list ) {
-        printf ("\nERROR: must initialize timed_task_list before %s \n\n",__FUNCTION__);
         exit ( -1 );
     }
     /* allocate mem to task */
@@ -109,12 +100,10 @@ sice_add_timed_task (           GQueue*                 sice_timed_task_list,
      
     /* check success and set data to the event */
     if ( !timed_task ) {
-        printf ("\nERROR: memory allocation for timed_task failed %s \n\n",__FUNCTION__);
         exit ( -1 );
         /* TODO:better error handling here */
     }
     else {
-        //g_usleep( 50000 );
         g_get_current_time( &(timed_task->execution_time) );
 
         /*  generate expiration time depending to the type of the task */
@@ -160,15 +149,14 @@ sice_add_timed_task (           GQueue*                 sice_timed_task_list,
 }
 
 void
-sice_add_timed_task_with_delay (        GQueue*         sice_timed_task_list,
-                                        guint           delay_ms,
-                                        E_TIMED_TASK_TYPE       type,
-                                        gpointer                    user_data ) {
+sice_add_timed_task_with_delay (        GQueue*             sice_timed_task_list,
+                                        guint               delay_ms,
+                                        E_TIMED_TASK_TYPE   type,
+                                        void*               user_data ) {
 
     sice_timed_task* timed_task;
 
     if ( !sice_timed_task_list ) {
-        printf ("\nERROR: must initialize timed_task_list before %s \n\n",__FUNCTION__);
         exit ( -1 );
     }
     /* allocate mem to task */
@@ -176,11 +164,9 @@ sice_add_timed_task_with_delay (        GQueue*         sice_timed_task_list,
 
     /* check success and set data to the event */
     if ( !timed_task ) {
-        printf ("\nERROR: memory allocation for timed_task failed %s \n\n",__FUNCTION__);
         exit ( -1 );
         /* TODO:better error handling here */
-    }
-    else {
+    } else {
         g_get_current_time( &(timed_task->execution_time) );
         g_time_val_add( &(timed_task->execution_time), delay_ms * 1000);
 

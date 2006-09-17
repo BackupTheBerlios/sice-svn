@@ -1,5 +1,5 @@
 /* Copyright (C) 2006  Movial Oy
- * authors:     rami.erlin@movial.fi
+ * authors:     re@welho.com
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -137,8 +137,8 @@ struct  _sice_stun_server_info {
 typedef struct _sice_stun_attribute_integrity            attr_integrity;
 struct _sice_stun_attribute_integrity {
 
-        char    sha1_hash[20];       
-        char    hash_16[16];
+        unsigned char           sha1_hash[20];       
+
 };
 
 
@@ -187,10 +187,10 @@ struct _sice_stun_message {
 
     stun_message_header msg_header;
     attr_addr4*         source_addr;
-    attr_addr4*         destination_addr;
-    attr_addr4*         mapped_address;
+    attr_addr4*         response_addr;
+    attr_addr4*         mapped_addr;
     attr_addr4*         xor_mapped_addr;
-    attr_addr4*         remote_addr;
+    attr_addr4*         changed_addr;
     attr_addr4*         relay_addr;     // reflected from
     attr_string*        username_attr;
     attr_string*        password_attr;
@@ -201,7 +201,24 @@ struct _sice_stun_message {
     attr_integrity*     integrity_attr;
 };
                  
-            
+
+
+/* proto's*/
+
+int
+sice_stun_encode_message (       stun_message*     msg, // dest
+                                 char*                   buffer, //src
+                                 unsigned int            buffer_len,
+                                 attr_string*            pw );
+
+
+sice_stun_message*
+sice_parse_stun_message (        char*                  buffer,
+                                 unsigned int           buffer_len );
+
+attr_string*
+sice_stun_form_username (        const attr_addr4*           source_attr );
+
 #ifdef __cplusplus
 }
 #endif

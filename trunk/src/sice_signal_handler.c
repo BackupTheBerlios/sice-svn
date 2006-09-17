@@ -1,6 +1,6 @@
 /* Copyright (C) 2006  Movial Oy
- * authors:     rami.erlin@movial.fi
- *              arno.karatmaa@movial.fi
+ * authors:     re@welho.com
+ *              arno.karatmaa@gmail.com
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -33,9 +33,44 @@
 
 #define PORT 9000               /* port we're listening on */
 
+session_data sessions[MAXSESSIONS];
+
+void
+init_session(   session_data*           session) {
+  (*session).event_fifo = NULL;
+  (*session).timed_task_list = NULL;
+}
+
 int 
+create_any_socket ( int*                    initial_trial_port,
+                    int*                    port,
+                    struct sockaddr_in*     native_addr_pointer,
+                    int*                    socket_fd ) {
+    int max_trial_port;
+    int current_port;
+    int retval;
+
+    max_trial_port = *initial_trial_port + 20;
+    current_port = *initial_trial_port;
+
+    while ( current_port < max_trial_port ) {
+        retval = create_socket ( current_port, native_addr_pointer, socket_fd );
+        if (retval == 0) {
+            *port = current_port;
+            *initial_trial_port = current_port + 1;
+            return 0;
+        }
+        current_port++;
+        printf("Trying another socket!!!! %d failed\n", current_port);
+    }
+    return -1;
+}
+
+int
 create_socket ( int                     port, 
-                struct sockaddr_in*     native_addr_pointer) {
+                struct sockaddr_in*     native_addr_pointer,
+                int*                    socket_fd ) {
+
     int listener;
     struct sockaddr_in native_addr;
     native_addr = *native_addr_pointer;
@@ -43,15 +78,18 @@ create_socket ( int                     port,
     /* struct sockaddr_in native_addr; */
     int yes = 1;
 
+    printf("SOCKET (%d) \n", port);
+
     if ((listener = socket (PF_INET, SOCK_DGRAM, 0)) == -1) {
-        perror ("socket");
-        exit (1);
+        printf ("ERROR socket\n");
+        return 1;
     }
 
     /* lose the pesky "address already in use" error message */
     if (setsockopt (listener, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof (int)) == -1) {
+        printf ("ERROR setsocketopt\n");
         perror ("setsockopt");
-        exit (1);
+        return 1;
     }
 
     native_addr.sin_family = AF_INET;
@@ -60,14 +98,69 @@ create_socket ( int                     port,
     native_addr.sin_port = htons (port);
     memset ((native_addr.sin_zero), '\0', 8);
     if (bind (listener, (struct sockaddr *) &native_addr, sizeof (native_addr)) == -1) {
+        printf ("ERROR bind\n");
         perror ("bind");
-        exit (1);
+        return 1;
     }
 
-    return listener;
+    *socket_fd = listener;
+    return 0;
 }
 
+int
+signal_handler_initialize (             int                     session_id,
+                                        int                     port_count,
+                                        int*                    client_ports,
+                                        int*                    library_ports,
+                                        sice_callback           callback ) {
+  int j;
+  addr4 address;
+  char ip[4] = {127, 0, 0, 1}; /* address of localhost */
+  int local_port;
+  int initial_trial_port = 9000;
+  session_data session;
+  socket_tunnel tunnel;
+  int retval;
+
+  session = sessions[session_id];
+
+  init_session(&session);
+
+  sessions[session_id].port_count = port_count;
+  for (j = 0; j < port_count; j++) {
+      tunnel = session.socket_tunnels[j];
+
+      /* save client ports for this session */
+      address = sessions[session_id].client_ports[j];
+      address.port = client_ports[j];
+      address.addr = (guint32) ip;
+
+      /* create local library socket */
+      retval = create_any_socket( &initial_trial_port, &local_port, &tunnel.local_lib_sockaddr, 
+              &tunnel.local_lib_socket_fd );
+      if (retval == -1) 
+          return -1;
+      library_ports[j] = local_port; /* return value for the client */
+      tunnel.local_lib_addr.port = local_port;
+      tunnel.local_lib_addr.addr = (guint32) ip;
+
+      /* create network library socket */
+      retval = create_any_socket( &initial_trial_port, &local_port, &tunnel.local_lib_sockaddr,
+              &tunnel.local_lib_socket_fd );
+    if (retval == -1)
+        return -1;
+    tunnel.network_lib_addr.port = local_port;
+    tunnel.network_lib_addr.addr = (guint32) ip;
+
+  }
+
+  printf("Initialising signal handler sockets!\n");
+  return 0;
+}
+
+
 /* Getting delay for the next time task if any, if not, returning NULL */
+
 struct timeval* 
 set_timed_task_list_delay(      GQueue*         timed_task_list,
                                 struct timeval* timer_delay ) {
@@ -92,7 +185,8 @@ void
 run_signal_handler (    int             client_port_count, 
                         int*            client_ports, 
                         GQueue*         event_fifo, 
-                        GQueue*         timed_task_list) {
+                        GQueue*         timed_task_list,
+                        session_data    session) {
     fd_set master;
     fd_set read_fds;
     struct sockaddr_in native_addr[10];
@@ -110,13 +204,21 @@ run_signal_handler (    int             client_port_count,
 
     struct sockaddr_in from;
     struct sockaddr_in tmp_sockaddr_in;
-
-
+    int initial_trial_socket;
+ 
     FD_ZERO (&master);
     FD_ZERO (&read_fds);
 
     for ( j = 0; j < client_port_count ; j++ ) {
-        listeners[j] = create_socket(client_ports[j], &native_addr[j]);
+        /* retval = create_socket(client_ports[j], &native_addr[j], &listeners[j]); */
+        initial_trial_socket = client_ports[j];
+
+        printf("Jump position %d\n", j);
+        retval = create_any_socket(&initial_trial_socket, &client_ports[j],  &native_addr[j], &listeners[j]);
+        if (retval != 0) {
+          printf("SOCKET LUONTI EI ONNISTUNUT: %d\n", client_ports[j]);
+        }
+
         FD_SET (listeners[j], &master);
         if (listeners[j] > fdmax) {
             fdmax = listeners[j];
@@ -164,7 +266,7 @@ run_signal_handler (    int             client_port_count,
                 tmp_sockaddr_in = (struct sockaddr_in) from;
                 printf("RECEIVE PORT: %d\n", ntohs(tmp_sockaddr_in.sin_port));
 
-                buf[nbytes] = 0; /
+                buf[nbytes] = 0;
                 /* Terminating string */
                 printf("Receiving something! (maybe): %s\n", buf);
                 /* sending data */

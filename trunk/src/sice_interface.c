@@ -1,6 +1,6 @@
 /* Copyright (C) 2006  Movial Oy
- * authors:     rami.erlin@movial.fi
- *              arno.karatmaa@movial.fi
+ * authors:     re@welho.com
+ *              arno.karatmaa@gmail.com
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,22 +18,18 @@
  */
 
 
-#include "../include/sice_interface.h"
-//#include "sice_types.h"
-
 #include <stdio.h>
-
-
+#include "../include/sice_interface.h"
+#include "sice_signal_handler.h"
 
 int
-sice_initialize                  (       int                     session_id,
-                                        int                     client_port_count,
+sice_initialize                  (      int                     session_id,
+                                        int                     port_count,
                                         int*                    client_ports,
-                                        sice_callback            callback ) {
+                                        int*                    library_ports,
+                                        sice_callback           callback ) { 
+  return signal_handler_initialize ( session_id, port_count, client_ports, library_ports, callback);
 
-
-
-    return 0;
 }
 
 int    /* finalize / stop one session pointed by session_id */

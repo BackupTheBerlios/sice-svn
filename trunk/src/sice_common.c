@@ -1,6 +1,6 @@
 /* Copyright (C) 2006  Movial Oy
- * authors:     rami.erlin@movial.fi
- *              arno.karatmaa@movial.fi
+ * authors:     re@welho.com
+ *              arno.karatmaa@gmail.com
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -27,14 +27,14 @@
 
 /** static's **/
 static gint
-sice_cmp_candidates(	sice_candidate*  C1,
-                       	sice_candidate*  C2,
-                       	gpointer        user_data );
+sice_cmp_candidates(	sice_candidate*     C1,
+                       	sice_candidate*     C2,
+                       	gpointer            user_data );
 
 static gint
-sice_cmp_transport_address_pairs(        sice_candidate*  C1,
-                                        sice_candidate*  C2,
-                                        gpointer        user_data );
+sice_cmp_transport_address_pairs(       sice_candidate*     C1,
+                                        sice_candidate*     C2,
+                                        gpointer            user_data );
 
 /*****************/
 
@@ -50,7 +50,7 @@ sice_init_candidate_pairs() {
  * N and R came from client.
  */
 void
-sice_generate_candidate_pairs(   GQueue* sice_candidate_pairs,
+sice_generate_candidate_pairs(  GQueue* sice_candidate_pairs,
                                 GList*  sice_native_candidates,
                                 GList*  sice_remote_candidates ) {
     

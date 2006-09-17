@@ -1,5 +1,5 @@
 /* Copyright (C) 2006  Movial Oy
- * authors:     rami.erlin@movial.fi
+ * authors:     re@movial.fi
  *              arno.karatmaa@movial.fi
  *
  * This library is free software; you can redistribute it and/or
@@ -30,8 +30,6 @@ extern "C" {
 
 /*! enumerated list indicates type of callback */
 typedef enum _sice_callback_type         E_CALLBACK_TYPE;
-
-/*! ice callback enums */
 enum    _sice_callback_type  {
             
             NATIVE_GANDIDATES_GATHERED  = 0     , 
@@ -41,7 +39,8 @@ enum    _sice_callback_type  {
             ERROR_OCCURRED                      
 };
 
-/*! struct _sice_media_conn_state includes some usefull information from media connection properties */
+/*! struct _sice_media_conn_state includes some usefull information 
+    from media connection properties */
 typedef struct _sice_media_conn_state          sice_conn_state;
 struct  _sice_media_conn_state {
     
@@ -83,16 +82,17 @@ typedef void ( *sice_callback )          (      int                     session_
  */
 int
 sice_initialize                  (      int                     session_id,
-                                        int                     client_port_count,
+                                        int                     port_count,
                                         int*                    client_ports,
-                                        sice_callback            callback );
+                                        int*                    library_ports,
+                                        sice_callback           callback );
 
 /*! finalize / stop single session pointed by session_id */
 int    
-sice_finalize                    (       int                     session_id );
+sice_finalize                    (      int                     session_id );
 /*! start gathering native candidate's  */
 int    
-sice_gather_native_candidates    (       int                     session_id );
+sice_gather_native_candidates    (      int                     session_id );
 
 /*! 
       sice_set_remote_cadidates -function sets information of remote candidates,
@@ -110,22 +110,22 @@ sice_set_remote_candidates       (      int                     session_id,
 
 int
 sice_set_active_candidate_pair   (      int                     session_id,
-                                        sice_candidate_pair*     sice_candidate_pair );
+                                        sice_candidate_pair*    sice_candidate_pair );
 
 /*! add single remote candidate to list of remote candidates */
 int 
 sice_add_remote_candidate        (      int                     session_id,
-                                        sice_candidate*          sice_remote_candidate );
+                                        sice_candidate*         sice_remote_candidate );
 
 /*! remove single remote candidate from list of remote candidates*/
 int  
-sice_del_remote_candidate        (       int                     session_id,
-                                        sice_candidate*          sice_remote_candidate );
+sice_del_remote_candidate        (      int                     session_id,
+                                        sice_candidate*         sice_remote_candidate );
 
 /*!  change / set media connection state   */
 int   
-sice_set_media_conn_state        (       int                     session_id,
-                                        sice_conn_state          conn_state      );
+sice_set_media_conn_state        (      int                 session_id,
+                                        sice_conn_state     conn_state );
 
 
 

@@ -19,7 +19,7 @@
 
 #include "../include/sice_types.h"
 #include "sice_tr_addr_pair_handler.h"
-
+#include "sice_stun.c"
 #include <glib.h>
 
 

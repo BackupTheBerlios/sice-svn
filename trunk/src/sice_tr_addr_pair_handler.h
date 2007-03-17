@@ -33,9 +33,9 @@ extern "C" {
  * of running state machine.
  */
 void
-sice_run_transport_address_pair_state_machine(	GQueue*                         event_fifo,
-						sice_transport_address_pair*     t_addr_pair,
-        					sice_stun_message*               stun_msg );
+sice_run_transport_address_pair_state_machine(	GQueue*								event_fifo,
+																								sice_transport_address_pair* t_addr_pair,
+																								sice_stun_message*		stun_msg );
 
 
 

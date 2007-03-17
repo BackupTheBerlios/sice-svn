@@ -32,6 +32,7 @@
 #include <glib.h>
 #include <sys/time.h>
 #include "sice_event_fifo.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -44,7 +45,7 @@ enum TIMED_TASK_TYPE {
         TYPE_CONNECTIVITY_CHECK,
         TYPE_MAX_CONN_CHECK_WAIT,
         TYPE_MAX_ANSWER_WAIT,
-        TYPE_TEST_DELAY_V1, /* don't remove, in use */
+        TYPE_TEST_DELAY_V1, /* for testing purpose */
         TYPE_KEEP_ALIVE,
         TYPE_GENERATE_EVENT,
         TYPE_TEST2,
@@ -64,26 +65,28 @@ GQueue*
 sice_initialize_timed_task_list();
 
 void
-sice_add_timed_task (            GQueue*                 sice_timed_task_list,
-                                sice_timed_task*         timed_task,
+sice_add_timed_task (           GQueue*                 sice_timed_task_list,
+                                sice_timed_task*        timed_task,
                                 E_TIMED_TASK_TYPE       t_type,
                                 E_EVENT_TYPE            e_type,
                                 gpointer                user_data );
 
 void
-sice_set_time_difference ( GTimeVal later_moment, GTimeVal earlier_moment, struct timeval* time_difference );
+sice_set_time_difference ( 			GTimeVal 								later_moment,
+																GTimeVal 								earlier_moment,
+																struct timeval* 				time_difference );
 
 void
-sice_add_timed_task_with_delay ( GQueue* sice_timed_task_list,
-                                guint delay_ms,
-                                E_TIMED_TASK_TYPE type,
-                                gpointer user_data );
+sice_add_timed_task_with_delay (	GQueue* 							sice_timed_task_list,
+																	guint 								delay_ms,
+                                	E_TIMED_TASK_TYPE 		type,
+                                	gpointer 							user_data );
                                                                                                 
 sice_timed_task*
-sice_get_next_timed_task (       GQueue*                 sice_timed_task_list );
+sice_get_next_timed_task (       	GQueue*               sice_timed_task_list );
 
 sice_timed_task*
-sice_peek_next_timed_task (       GQueue*                 sice_timed_task_list );
+sice_peek_next_timed_task (       GQueue*								sice_timed_task_list );
 
 
 /********************************************************************'

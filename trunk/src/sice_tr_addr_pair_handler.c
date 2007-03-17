@@ -25,42 +25,42 @@
 
 /* static function's for state machine ***********************************/
 static E_TAP_STATE
-sice_tap_waiting         (       GQueue*                         event_fifo,
-                                sice_transport_address_pair*     t_addr_pair,
-                                sice_stun_message*               stun_msg );
+sice_tap_waiting         (      GQueue*														event_fifo,
+                                sice_transport_address_pair*     	t_addr_pair,
+                                sice_stun_message*               	stun_msg );
 
 static E_TAP_STATE
-sice_tap_testing         (       GQueue*                         event_fifo,
-                                sice_transport_address_pair*     t_addr_pair,
-                                sice_stun_message*               stun_msg );
+sice_tap_testing         (      GQueue*                         	event_fifo,
+                                sice_transport_address_pair*     	t_addr_pair,
+                                sice_stun_message*               	stun_msg );
 
 static E_TAP_STATE
-sice_tap_recv_valid      (       GQueue*                         event_fifo,
-                                sice_transport_address_pair*     t_addr_pair,
-                                sice_stun_message*               stun_msg );        
+sice_tap_recv_valid      (      GQueue*                         	event_fifo,
+                                sice_transport_address_pair*     	t_addr_pair,
+                                sice_stun_message*               	stun_msg );        
 
 static E_TAP_STATE
-sice_tap_send_valid      (       GQueue*                         event_fifo,
-                                sice_transport_address_pair*     t_addr_pair,
-                                sice_stun_message*               stun_msg );
+sice_tap_send_valid      (      GQueue*                         	event_fifo,
+                                sice_transport_address_pair*     	t_addr_pair,
+                                sice_stun_message*               	stun_msg );
 static E_TAP_STATE
-sice_tap_valid           (       GQueue*                         event_fifo,
-                                sice_transport_address_pair*     t_addr_pair,
-                                sice_stun_message*               stun_msg );
+sice_tap_valid           (      GQueue*                         	event_fifo,
+                                sice_transport_address_pair*     	t_addr_pair,
+                                sice_stun_message*               	stun_msg );
 
 static E_TAP_STATE
-sice_tap_invalid         (       GQueue*                         event_fifo,
-                                sice_transport_address_pair*     t_addr_pair,
-                                sice_stun_message*               stun_msg );
+sice_tap_invalid         (      GQueue*                         	event_fifo,
+                                sice_transport_address_pair*     	t_addr_pair,
+                                sice_stun_message*               	stun_msg );
 /*************************************************************************/
 
 
 
 
 void
-sice_run_transport_address_pair_state_machine(   GQueue*                         event_fifo,
-                                                sice_transport_address_pair*     t_addr_pair,
-                                                sice_stun_message*               stun_msg ) {
+sice_run_transport_address_pair_state_machine(   GQueue*	event_fifo,
+                                                sice_transport_address_pair*	t_addr_pair,
+                                                sice_stun_message*	stun_msg ) {
     
     switch ( t_addr_pair->state ) {
         
@@ -102,9 +102,9 @@ sice_run_transport_address_pair_state_machine(   GQueue*                        
 
 
 static E_TAP_STATE
-sice_tap_waiting (       GQueue*                         event_fifo,
-                        sice_transport_address_pair*     t_addr_pair,
-                        sice_stun_message*               stun_msg ) {
+sice_tap_waiting (      GQueue*                         	event_fifo,
+                        sice_transport_address_pair*     	t_addr_pair,
+                        sice_stun_message*               	stun_msg ) {
     /* In here we wait one of three events :
      *  - chance to send a Binding request
      *  - receipt of Binding Request 
@@ -138,9 +138,9 @@ sice_tap_waiting (       GQueue*                         event_fifo,
 
 
 static E_TAP_STATE
-sice_tap_testing (       GQueue*                         event_fifo,
-                        sice_transport_address_pair*     t_addr_pair,
-                        sice_stun_message*               stun_msg ) {
+sice_tap_testing (      GQueue*                         	event_fifo,
+                        sice_transport_address_pair*     	t_addr_pair,
+                        sice_stun_message*               	stun_msg ) {
     
     /* The agent then sends a connectivity check using 
      * a STUN Binding Request
@@ -164,9 +164,9 @@ sice_tap_testing (       GQueue*                         event_fifo,
 }
 
 static E_TAP_STATE
-sice_tap_recv_valid (    GQueue*                         event_fifo,
-                        sice_transport_address_pair*     t_addr_pair,
-                        sice_stun_message*               stun_msg ) {
+sice_tap_recv_valid (   GQueue*                         	event_fifo,
+                        sice_transport_address_pair*     	t_addr_pair,
+                        sice_stun_message*               	stun_msg ) {
     /* we know we can receive data from the peer */
 
     /* take current state */
@@ -183,9 +183,9 @@ sice_tap_recv_valid (    GQueue*                         event_fifo,
 
 
 static E_TAP_STATE
-sice_tap_send_valid (    GQueue*                         event_fifo,
-                        sice_transport_address_pair*     t_addr_pair,
-                        sice_stun_message*               stun_msg ) {
+sice_tap_send_valid (   GQueue*                         	event_fifo,
+                        sice_transport_address_pair*     	t_addr_pair,
+                        sice_stun_message*               	stun_msg ) {
     /* we know we can send data to the peer*/
     /* take current state */
     E_TAP_STATE current_state = t_addr_pair->state;    
@@ -201,9 +201,9 @@ sice_tap_send_valid (    GQueue*                         event_fifo,
 
 
 static E_TAP_STATE
-sice_tap_valid (         GQueue*                         event_fifo,
-                        sice_transport_address_pair*     t_addr_pair,
-                        sice_stun_message*               stun_msg ) {
+sice_tap_valid (        GQueue*                         	event_fifo,
+                        sice_transport_address_pair*     	t_addr_pair,
+                        sice_stun_message*               	stun_msg ) {
     
     /* take current state */
     E_TAP_STATE current_state = t_addr_pair->state;    
@@ -219,13 +219,13 @@ sice_tap_valid (         GQueue*                         event_fifo,
 
 
 static E_TAP_STATE
-sice_tap_invalid (       GQueue*                         event_fifo,
-                        sice_transport_address_pair*     t_addr_pair,
-                        sice_stun_message*               stun_msg ) {
+sice_tap_invalid (      GQueue*                         	event_fifo,
+                        sice_transport_address_pair*     	t_addr_pair,
+                        sice_stun_message*               	stun_msg ) {
     
     
         return INVALID;
 }
 
 
- /* _SICE_INTERFACE_C_ */
+ /*  */

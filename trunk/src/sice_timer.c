@@ -49,8 +49,10 @@ sice_initialize_timed_task_list() {
     return g_queue_new();
 }
 
-/* Note: no negative time differences (== past) are tolerated, those are interpreted as zero (== now) for the 
- * purposes of select operation. */
+/* Note: no negative time differences (== past) are tolerated,
+ * those are interpreted as zero (== now) for the 
+ * purposes of select operation. 
+ * */
 void 
 sice_set_time_difference (      GTimeVal            later_moment, 
                                 GTimeVal            earlier_moment, 
@@ -101,7 +103,7 @@ sice_add_timed_task (           GQueue*                 sice_timed_task_list,
     /* check success and set data to the event */
     if ( !timed_task ) {
         exit ( -1 );
-        /* TODO:better error handling here */
+        /* TODO: real error handling here */
     }
     else {
         g_get_current_time( &(timed_task->execution_time) );
@@ -165,7 +167,7 @@ sice_add_timed_task_with_delay (        GQueue*             sice_timed_task_list
     /* check success and set data to the event */
     if ( !timed_task ) {
         exit ( -1 );
-        /* TODO:better error handling here */
+        /* TODO: real error handling here */
     } else {
         g_get_current_time( &(timed_task->execution_time) );
         g_time_val_add( &(timed_task->execution_time), delay_ms * 1000);

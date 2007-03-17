@@ -33,7 +33,8 @@
 void 
 hmac_sha1 (     const void      *key, 
                 int             key_len,
-	        const void      *message, int message_len,
-	        void            *hmac);
+	        			const void      *message,
+								int 						message_len,
+	        			void            *hmac);
 
 #endif /* _SHA1_H_ */

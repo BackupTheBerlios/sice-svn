@@ -2,8 +2,6 @@
 INSTALLED_DOCS = \
     design.xml
 
-
-
 all: pdf html 
 
 pdf: $(subst .xml,.pdf,$(wildcard *.xml)) $(subst .tex,.pdf,$(wildcard *.tex))
